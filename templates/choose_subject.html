@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chọn môn</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        <h2>Chọn môn học</h2>
+
+<a href="/subject/toan">
+    <button class="subject-btn">Toán</button>
+</a>
+
+<a href="/subject/ly">
+    <button class="subject-btn">Lý</button>
+</a>
+
+<a href="/subject/hoa">
+    <button class="subject-btn">Hóa</button>
+</a>
+
+<a href="/subject/trung">
+    <button class="subject-btn">Tiếng Trung</button>
+</a>
+
+
+        <a class="link" href="/result">Xem kết quả</a>
+        <a class="link" href="/logout">Đăng xuất</a>
+    </div>
+</body>
+</html>

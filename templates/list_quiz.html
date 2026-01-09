@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách đề</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        <h2>Môn {{ subject|upper }}</h2>
+
+        {% for q in quizzes %}
+            <button>{{ q.quiz_name }}</button>
+        {% endfor %}
+
+        <a class="link" href="/choose">← Quay lại</a>
+    </div>
+</body>
+</html>
