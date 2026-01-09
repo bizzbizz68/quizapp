@@ -1,7 +1,4 @@
-* {
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
-}
+* { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
 
 body {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
@@ -15,17 +12,14 @@ body {
 .card {
     background: #fff;
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     text-align: center;
 }
 
-h1, h2 {
-    margin-bottom: 20px;
-    color: #333;
-}
+h1, h2 { margin-bottom: 20px; color: #333; }
 
 input {
     width: 100%;
@@ -48,17 +42,13 @@ button {
     margin-bottom: 12px;
 }
 
-button:hover {
-    background: #358de5;
-}
+button:hover { background: #358de5; }
 
-.subject-btn {
-    background: #00c853;
-}
+.subject-btn { background: #00c853; }
+.subject-btn:hover { background: #00a844; }
 
-.subject-btn:hover {
-    background: #00a844;
-}
+.quiz-btn { background: #ff5722; }
+.quiz-btn:hover { background: #e64a19; }
 
 .link {
     display: block;
@@ -67,6 +57,4 @@ button:hover {
     text-decoration: none;
 }
 
-.link:hover {
-    text-decoration: underline;
-}
+.link:hover { text-decoration: underline; }

@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Kết quả</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Kết quả làm bài</h2>
+    <div class="card">
+        <h2>Kết quả</h2>
+        <p>Người dùng: <b>{{ user }}</b></p>
+        <p>Chưa có dữ liệu kết quả</p>
 
-    <p>Người dùng: {{ user }}</p>
-    <p>(Chưa có dữ liệu – sẽ làm sau)</p>
-
-    <a href="/choose">Quay lại chọn môn</a>
+        <a class="link" href="/choose">Quay lại chọn môn</a>
+    </div>
 </body>
 </html>

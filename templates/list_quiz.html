@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách đề</title>
+    <title>Danh sách đề - {{ subject|upper }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -10,7 +10,9 @@
         <h2>Môn {{ subject|upper }}</h2>
 
         {% for q in quizzes %}
-            <button>{{ q.quiz_name }}</button>
+            <a href="#">
+                <button class="quiz-btn">{{ q.quiz_name }}</button>
+            </a>
         {% endfor %}
 
         <a class="link" href="/choose">← Quay lại</a>
