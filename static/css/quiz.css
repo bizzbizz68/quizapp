@@ -1,0 +1,19 @@
+.answers button {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.answers button.selected {
+  background: #4caf50;
+  color: white;
+  font-weight: bold;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}

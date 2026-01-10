@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Chọn môn</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="card">
-        <h2>Chọn môn học</h2>
 
-        <a href="/subject/toan"><button class="subject-btn">Toán</button></a>
-        <a href="/subject/ly"><button class="subject-btn">Lý</button></a>
-        <a href="/subject/hoa"><button class="subject-btn">Hóa</button></a>
-        <a href="/subject/trung"><button class="subject-btn">Tiếng Trung</button></a>
+<div class="container">
+<div class="card">
 
-        <a class="link" href="/result">Xem kết quả</a>
-        <a class="link" href="/logout">Đăng xuất</a>
-    </div>
+    <h2 class="title">Chọn môn học</h2>
+
+    <!-- CHỈ SỬA LINK -->
+    <a class="subject-btn" href="/list-quiz/toan">Toán</a>
+    <a class="subject-btn" href="/list-quiz/ly">Lý</a>
+    <a class="subject-btn" href="/list-quiz/hoa">Hóa</a>
+    <a class="subject-btn" href="/list-quiz/trung">Tiếng Trung</a>
+
+    <a class="link" href="/result">Xem kết quả</a>
+    <a class="link" href="/logout">Đăng xuất</a>
+
+</div>
+</div>
+
 </body>
 </html>

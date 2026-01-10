@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Làm bài</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+
+    <p id="timer" style="font-weight:bold; color:#d9534f;">
+        ⏱ Thời gian còn lại: <span id="time">15:00</span>
+    </p>
+
+    <h2 class="title">Đề: {{ quiz_name }}</h2>
+    <p id="status" style="font-weight:bold; color:#d9534f;"></p>
+
+    <!-- CÂU HỎI -->
+    <div id="question-box">
+        <p id="question">Đang tải câu hỏi...</p>
+    </div>
+
+    <!-- ĐÁP ÁN -->
+    <div id="answers">
+        <button class="subject-btn" id="btnA" onclick="selectAnswer('A')"></button>
+        <button class="subject-btn" id="btnB" onclick="selectAnswer('B')"></button>
+        <button class="subject-btn" id="btnC" onclick="selectAnswer('C')"></button>
+        <button class="subject-btn" id="btnD" onclick="selectAnswer('D')"></button>
+    </div>
+
+    <!-- ĐIỀU HƯỚNG -->
+    <div style="margin-top:15px; display:flex; gap:10px; justify-content:center;">
+        <button class="subject-btn" onclick="prevQuestion()">⬅ Câu trước</button>
+
+        <button class="subject-btn"
+                style="background:#d9534f; color:white;"
+                onclick="submitQuiz()">
+            ✅ Nộp bài
+        </button>
+
+        <button class="subject-btn" onclick="nextQuestion()">Câu tiếp ➡</button>
+    </div>
+
+    <a class="link" href="/list-quiz/{{ subject }}">⬅ Quay lại danh sách đề</a>
+
+</div>
+</div>
+
+<script>
+console.log("JS LOADED");
+
+let questions = [];
+let current = 0;
+let answers = {};
+
+// ================= LOAD QUIZ =================
+fetch("/api/quiz/{{ subject }}/{{ quiz_id }}")
+    .then(res => res.json())
+    .then(data => {
+        console.log("QUESTIONS:", data);
+        questions = data;
+
+        if (questions.length === 0) {
+            document.getElementById("question").innerText =
+                "Đề này chưa có câu hỏi";
+            return;
+        }
+        showQuestion();
+    });
+
+// ================= HIỂN THỊ CÂU =================
+function showQuestion() {
+    const q = questions[current];
+
+    document.getElementById("question").innerText =
+        "Câu " + (current + 1) + ": " + q.question;
+
+    document.getElementById("btnA").innerText = "A. " + q.answer_A;
+    document.getElementById("btnB").innerText = "B. " + q.answer_B;
+    document.getElementById("btnC").innerText = "C. " + q.answer_C;
+    document.getElementById("btnD").innerText = "D. " + q.answer_D;
+
+    highlight();
+}
+
+// ================= CHỌN ĐÁP ÁN =================
+function selectAnswer(choice) {
+    answers[current] = choice;
+    highlight();
+
+    setTimeout(goNextAuto, 200);
+}
+
+function highlight() {
+    ["A","B","C","D"].forEach(c => {
+        document.getElementById("btn"+c).classList.remove("selected");
+    });
+
+    if (answers[current]) {
+        document.getElementById("btn"+answers[current])
+            .classList.add("selected");
+    }
+}
+
+// ================= ĐIỀU HƯỚNG =================
+function nextQuestion() {
+    if (current < questions.length - 1) {
+        current++;
+        showQuestion();
+    }
+}
+
+function prevQuestion() {
+    if (current > 0) {
+        current--;
+        showQuestion();
+    }
+}
+
+function goNextAuto() {
+    if (current < questions.length - 1) {
+        current++;
+        showQuestion();
+        return;
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+        if (answers[i] === undefined) {
+            current = i;
+            showQuestion();
+            return;
+        }
+    }
+
+    document.getElementById("status").innerText =
+        "Bạn đã làm hết các câu, có thể nộp bài";
+}
+
+// ================= TIMER =================
+let totalTime = 900;
+let timerInterval = setInterval(() => {
+    totalTime--;
+
+    let minutes = Math.floor(totalTime / 60);
+    let seconds = totalTime % 60;
+
+    document.getElementById("time").innerText =
+        `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+    if (totalTime <= 0) {
+        clearInterval(timerInterval);
+        submitQuiz();
+    }
+}, 1000);
+
+// ================= NỘP BÀI =================
+function submitQuiz() {
+    clearInterval(timerInterval);
+
+    fetch("/submit/{{ subject }}/{{ quiz_id }}", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({answers})
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("status").innerText =
+            `Hoàn thành bài – Điểm: ${data.score}/${data.total}`;
+
+        setTimeout(() => {
+            window.location.href = "/result";
+        }, 1500);
+    });
+}
+</script>
+
+</body>
+</html>

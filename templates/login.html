@@ -1,17 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Đăng nhập</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="card">
-        <h1>Quiz App</h1>
-        <form method="post">
-            <input type="text" name="username" placeholder="Nhập tên của bạn" required>
-            <button type="submit">Đăng nhập</button>
-        </form>
+
+<div class="container">
+<form class="card" method="post">
+
+    <h2 class="title">Đăng nhập</h2>
+
+    {% for c,m in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{c}}">{{m}}</div>
+    {% endfor %}
+
+    <div class="input-group">
+        <label>Tài khoản</label>
+        <input name="username">
     </div>
+
+    <div class="input-group">
+        <label>Mật khẩu</label>
+        <div class="input-wrapper">
+            <input type="password" id="password" name="password">
+            <span class="toggle" onclick="toggle('password')">👁</span>
+        </div>
+    </div>
+
+    <button class="btn">Đăng nhập</button>
+    <a class="link" href="/register">Đăng ký</a>
+
+</form>
+</div>
+
+<script>
+/* ===== HIỆN / ẨN MẬT KHẨU ===== */
+function toggle(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === "password" ? "text" : "password";
+}
+</script>
+
 </body>
 </html>

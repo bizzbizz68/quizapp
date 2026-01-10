@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Xem lại bài</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+
+    <h2 class="title">Xem lại bài – {{ quiz_name }}</h2>
+
+    {% for q in questions %}
+        <div style="margin-bottom:15px;">
+            <p><b>Câu {{ loop.index }}:</b> {{ q.question }}</p>
+
+            {% for key, text in {
+                'A': q.answer_A,
+                'B': q.answer_B,
+                'C': q.answer_C,
+                'D': q.answer_D
+            }.items() %}
+                <p
+                  {% if answers.get(loop.parent.index0|string) == key %}
+                      style="font-weight:bold;"
+                  {% endif %}
+                  {% if q.correct_answer == key %}
+                      style="color:green;"
+                  {% endif %}
+                >
+                    {{ key }}. {{ text }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <a class="link" href="/result">⬅ Quay lại kết quả</a>
+
+</div>
+</div>
+
+</body>
+</html>

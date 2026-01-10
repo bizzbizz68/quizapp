@@ -1,17 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Kết quả</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="card">
-        <h2>Kết quả</h2>
-        <p>Người dùng: <b>{{ user }}</b></p>
-        <p>Chưa có dữ liệu kết quả</p>
 
-        <a class="link" href="/choose">Quay lại chọn môn</a>
-    </div>
+<div class="container">
+<div class="card">
+
+    <h2 class="title">Kết quả làm bài</h2>
+
+    {% if results %}
+    {% for r in results %}
+        <a class="subject-btn"
+           href="/review/{{ r.subject }}/{{ r.quiz_id }}">
+            {{ r.subject }} – {{ r.quiz_name }} :
+            {{ r.score }}/{{ r.total }}
+        </a>
+    {% endfor %}
+{% else %}
+    <p>Chưa có kết quả</p>
+{% endif %}
+
+    <a class="link" href="/choose-subject">⬅ Quay lại</a>
+
+</div>
+</div>
+
 </body>
 </html>

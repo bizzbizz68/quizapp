@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Đăng ký</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+<form class="card" method="post">
+
+    <h2 class="title">Đăng ký</h2>
+
+    {% for c,m in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{c}}">{{m}}</div>
+    {% endfor %}
+
+    <div class="input-group">
+        <label>Tài khoản</label>
+        <input name="username">
+    </div>
+
+    <div class="input-group">
+        <label>Họ tên</label>
+        <input name="fullname">
+    </div>
+
+    <div class="input-group">
+        <label>Số điện thoại</label>
+        <input name="phone">
+    </div>
+
+    <div class="input-group">
+        <label>Mật khẩu</label>
+        <div class="input-wrapper">
+            <input type="password" id="pass1" name="password">
+            <span class="toggle" onclick="toggle('pass1')">👁</span>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Xác nhận mật khẩu</label>
+        <div class="input-wrapper">
+            <input type="password" id="pass2" name="confirm">
+            <span class="toggle" onclick="toggle('pass2')">👁</span>
+        </div>
+    </div>
+
+    <button class="btn">Đăng ký</button>
+    <a class="link" href="/">Quay lại đăng nhập</a>
+
+</form>
+</div>
+
+<script>
+function toggle(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === "password" ? "text" : "password";
+}
+</script>
+
+</body>
+</html>

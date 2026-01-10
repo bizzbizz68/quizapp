@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+
+# Google service account
+service_account.json
+quizapp-483903-8a231b85e803.json
