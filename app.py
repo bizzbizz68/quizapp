@@ -8,7 +8,7 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import time
 import json
-
+import os
 app = Flask(__name__)
 app.secret_key = "quiz_secret_key"
 
@@ -17,10 +17,22 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
-creds = Credentials.from_service_account_file(
-    "service_account.json", scopes=SCOPES
+
+service_account_info = json.loads(
+    os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
 )
+
+service_account_info = json.loads(
+    os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+)
+
+creds = Credentials.from_service_account_info(
+    service_account_info,
+    scopes=SCOPES
+)
+
 gc = gspread.authorize(creds)
+
 
 SHEET_ID = "16Bnz7F28gs4Fj3bH0XjRpQ-_4jcIWCbh37XptYecesU"
 sh = gc.open_by_key(SHEET_ID)
@@ -218,7 +230,7 @@ def submit(subject, quiz_id):
 
 
 # ================= SUBMIT + CHẤM ĐIỂM =================
-@app.route("/submit/<subject>/<quiz_name>", methods=["POST"])
+@app.route("/submit-name/<subject>/<quiz_name>", methods=["POST"])
 def submit_quiz(subject, quiz_name):
     if "user" not in session:
         return jsonify({"error": "login required"}), 401
