@@ -200,21 +200,24 @@ def api_quiz(subject, quiz_id):
 
     return jsonify(questions)
 
-#=================THÊM ROUTE==============
 
+# ================= SUBMIT + CHẤM ĐIỂM =================
 @app.route("/submit/<subject>/<quiz_id>", methods=["POST"])
-def submit(subject, quiz_id):
+def submit_quiz(subject, quiz_id):
+    print("🔥 REAL SUBMIT HIT 🔥")
+
     if "user" not in session:
         return jsonify({"error": "login required"}), 401
 
     data = request.get_json()
     user_answers = data.get("answers", {})
 
-    # Lấy câu hỏi theo quiz_id
+    subject = subject.lower()
+    quiz_id = str(quiz_id).strip()
+
     questions = [
         q for q in get_quiz(subject)
-        if str(q.get("quiz_id")).strip().upper()
-           == str(quiz_id).strip().upper()
+        if str(q.get("quiz_id")).strip().upper() == quiz_id.upper()
     ]
 
     score = 0
@@ -222,58 +225,38 @@ def submit(subject, quiz_id):
         if user_answers.get(str(idx)) == q.get("correct_answer"):
             score += 1
 
-    # (tạm thời chưa lưu sheet, chỉ trả kết quả)
-    return jsonify({
-        "score": score,
-        "total": len(questions)
-    })
-
-
-# ================= SUBMIT + CHẤM ĐIỂM =================
-@app.route("/submit-name/<subject>/<quiz_name>", methods=["POST"])
-def submit_quiz(subject, quiz_name):
-    if "user" not in session:
-        return jsonify({"error": "login required"}), 401
-
-    data = request.get_json()
-    user_answers = data.get("answers", {})
-
-    questions = [
-        q for q in get_quiz(subject)
-        if q["quiz_name"] == quiz_name
-    ]
-
-    score = 0
-    for idx, q in enumerate(questions):
-        correct = q["correct_answer"]
-        user_ans = user_answers.get(str(idx)) or user_answers.get(idx)
-
-        if user_ans == correct:
-            score += 1
+    # lấy quiz_name
+    quiz_name = ""
+    for q in get_quiz("list"):
+        if str(q.get("quiz_id")).strip().upper() == quiz_id.upper():
+            quiz_name = q.get("quiz_name", "")
+            break
+    print("STEP 2: before save result")
 
     # ===== LƯU KẾT QUẢ VÀO SHEET RESULT =====
     try:
         ws_result = sh.worksheet("RESULT")
-
         ws_result.append_row([
-            session["user"],
+            session.get("user", ""),  # username (đúng với login hiện tại)
             subject,
-            quiz_id,  # <-- khóa thật
-            quiz_name,  # <-- chỉ để hiển thị
-            json.dumps(user_answers),
+            quiz_id,
+            quiz_name,
+            json.dumps(user_answers, ensure_ascii=False),
             score,
             len(questions),
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ])
-
     except:
-        pass
+        import traceback
+        print("SAVE RESULT ERROR:")
+        traceback.print_exc()
+
+    print("STEP 3: after save result")
 
     return jsonify({
         "score": score,
         "total": len(questions)
     })
-
 # ================= XEM KẾT QUẢ =================
 @app.route("/result")
 def result():
@@ -302,10 +285,13 @@ def review(subject, quiz_id):
     if "user" not in session:
         return redirect(url_for("login"))
 
+    subject = subject.lower()
+    quiz_id = str(quiz_id).strip().upper()
+
     # 1️⃣ Lấy câu hỏi theo quiz_id
     questions = [
         q for q in get_quiz(subject)
-        if str(q.get("quiz_id")).strip() == str(quiz_id).strip()
+        if str(q.get("quiz_id", "")).strip().upper() == quiz_id
     ]
 
     # 2️⃣ Lấy kết quả gần nhất của user
@@ -319,8 +305,8 @@ def review(subject, quiz_id):
     for r in reversed(rows):
         if (
             r.get("username") == session["user"]
-            and r.get("subject") == subject
-            and str(r.get("quiz_id")).strip() == str(quiz_id).strip()
+            and r.get("subject", "").strip().lower() == subject
+            and str(r.get("quiz_id", "")).strip().upper() == quiz_id
         ):
             user_result = r
             break
@@ -329,9 +315,11 @@ def review(subject, quiz_id):
     user_answers = {}
     quiz_name = ""
     if user_result:
-        import json
         quiz_name = user_result.get("quiz_name", "")
-        user_answers = json.loads(user_result.get("answers", "{}"))
+        try:
+            user_answers = json.loads(user_result.get("answers", "{}"))
+        except:
+            user_answers = {}
 
     return render_template(
         "review.html",
@@ -341,6 +329,7 @@ def review(subject, quiz_id):
         questions=questions,
         answers=user_answers
     )
+
 
 
 

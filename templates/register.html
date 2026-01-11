@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Đăng ký</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -17,32 +18,27 @@
     {% endfor %}
 
     <div class="input-group">
-        <label>Tài khoản</label>
-        <input name="username">
+        <input name="username" placeholder="Tài khoản">
     </div>
 
     <div class="input-group">
-        <label>Họ tên</label>
-        <input name="fullname">
+        <input name="fullname" placeholder="Họ tên">
     </div>
 
     <div class="input-group">
-        <label>Số điện thoại</label>
-        <input name="phone">
+        <input name="phone" placeholder="Số điện thoại">
     </div>
 
     <div class="input-group">
-        <label>Mật khẩu</label>
         <div class="input-wrapper">
-            <input type="password" id="pass1" name="password">
+            <input type="password" id="pass1" name="password" placeholder="Mật khẩu">
             <span class="toggle" onclick="toggle('pass1')">👁</span>
         </div>
     </div>
 
     <div class="input-group">
-        <label>Xác nhận mật khẩu</label>
         <div class="input-wrapper">
-            <input type="password" id="pass2" name="confirm">
+            <input type="password" id="pass2" name="confirm" placeholder="Xác nhận mật khẩu">
             <span class="toggle" onclick="toggle('pass2')">👁</span>
         </div>
     </div>

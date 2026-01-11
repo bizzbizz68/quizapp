@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <title>Đăng nhập</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 <body>
 
@@ -17,17 +19,16 @@
     {% endfor %}
 
     <div class="input-group">
-        <label>Tài khoản</label>
-        <input name="username">
-    </div>
+    <input name="username" placeholder="Tài khoản">
+</div>
+
 
     <div class="input-group">
-        <label>Mật khẩu</label>
-        <div class="input-wrapper">
-            <input type="password" id="password" name="password">
-            <span class="toggle" onclick="toggle('password')">👁</span>
-        </div>
+    <div class="input-wrapper">
+        <input type="password" id="password" name="password" placeholder="Mật khẩu">
+        <span class="toggle" onclick="toggle('password')">👁</span>
     </div>
+</div>
 
     <button class="btn">Đăng nhập</button>
     <a class="link" href="/register">Đăng ký</a>

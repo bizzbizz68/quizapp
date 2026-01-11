@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Xem lại bài</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
@@ -12,8 +13,27 @@
 
     <h2 class="title">Xem lại bài – {{ quiz_name }}</h2>
 
+    {% set option_map = ['A','B','C','D'] %}
+
     {% for q in questions %}
-        <div style="margin-bottom:15px;">
+        {% set q_idx = loop.index0 %}
+
+        {# ===== LẤY ĐÁP ÁN USER (DẠNG SỐ) ===== #}
+        {% set raw_choice =
+            answers.get(q_idx|string)
+            or answers.get((q_idx+1)|string)
+            or answers.get(q_idx)
+            or answers.get(q_idx+1)
+        %}
+
+        {# ===== ĐỔI SỐ → CHỮ ===== #}
+        {% if raw_choice is not none %}
+            {% set user_choice = option_map[raw_choice|int] %}
+        {% else %}
+            {% set user_choice = none %}
+        {% endif %}
+
+        <div style="margin-bottom:20px;">
             <p><b>Câu {{ loop.index }}:</b> {{ q.question }}</p>
 
             {% for key, text in {
@@ -22,16 +42,27 @@
                 'C': q.answer_C,
                 'D': q.answer_D
             }.items() %}
+
                 <p
-                  {% if answers.get(loop.parent.index0|string) == key %}
-                      style="font-weight:bold;"
-                  {% endif %}
-                  {% if q.correct_answer == key %}
-                      style="color:green;"
-                  {% endif %}
+                    style="
+                        margin-left:10px;
+                        {% if key == q.correct_answer %}
+                            color: green;
+                            font-weight: bold;
+                        {% elif key == user_choice and key != q.correct_answer %}
+                            color: red;
+                        {% endif %}
+                    "
                 >
                     {{ key }}. {{ text }}
+
+                    {% if key == q.correct_answer %}
+                        ✔
+                    {% elif key == user_choice and key != q.correct_answer %}
+                        ✘
+                    {% endif %}
                 </p>
+
             {% endfor %}
         </div>
     {% endfor %}
