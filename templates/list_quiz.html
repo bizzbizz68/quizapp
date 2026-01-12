@@ -3,33 +3,61 @@
 <head>
     <meta charset="utf-8">
     <title>Chọn đề</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- CSS dùng chung -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Mobile responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
 <div class="container">
-<div class="card">
+<div class="card quiz-list-page">
 
-    <h2 class="title">Chọn đề – {{ subject|upper }}</h2>
+    <h2 class="title">
+        Chọn đề – {{ subject|upper }} – {{ class_name|upper }}
+    </h2>
 
+    <!-- =========================
+         DANH SÁCH ĐỀ / THÔNG BÁO
+    ========================== -->
     {% if quiz_list %}
+
         {% for q in quiz_list %}
             <a class="subject-btn"
-   href="/quiz/{{ subject }}/{{ q.quiz_id }}">
-    {{ q.quiz_name }}
-</a>
+               href="/quiz/{{ subject }}/{{ q.quiz_id }}">
+                {{ q.quiz_name }}
+            </a>
         {% endfor %}
+
     {% else %}
-        <p>Chưa có đề cho môn này</p>
+
+        <!-- Thông báo khi chưa có đề -->
+        <p style="
+            text-align: center;
+            margin: 24px 0;
+            font-size: 16px;
+            color: #666;
+        ">
+            ❗ Chưa có đề cho lớp này
+        </p>
+
     {% endif %}
 
-    <a class="link" href="/choose-subject">⬅ Quay lại chọn môn</a>
-    <a class="link" href="/logout">Đăng xuất</a>
+    <!-- =========================
+         NÚT ĐIỀU HƯỚNG (LUÔN HIỆN)
+    ========================== -->
+    <div class="choose-quiz-footer">
+        <a class="link"
+           href="/choose-class/{{ subject }}">
+            ⬅ Quay lại chọn lớp
+        </a>
+
+        <a class="link" href="/logout">
+            Đăng xuất
+        </a>
+    </div>
 
 </div>
 </div>
-
-</body>
-</html>

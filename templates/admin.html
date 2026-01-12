@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="admin-container">
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 0: TIÊU ĐỀ + THÔNG BÁO HỆ THỐNG ============ -->
+<!-- ========================================================= -->
+
+<h2>⚙ ADMIN DASHBOARD</h2>
+
+{% for c, m in get_flashed_messages(with_categories=true) %}
+  <div class="flash {{ c }}">{{ m }}</div>
+{% endfor %}
+
+<div class="admin-card">
+
+<h3>📥 Upload đề + nhiều câu hỏi (Paste)</h3>
+
+<form method="post">
+  <!-- XÁC ĐỊNH ACTION CHO BACKEND -->
+  <input type="hidden" name="action" value="bulk_upload">
+
+  <!-- ======= CHỌN MÔN ======= -->
+  <label>Môn</label>
+  <select name="subject" id="subjectSelect" required>
+    <option value="">-- Chọn môn --</option>
+    <option value="toan">Toán</option>
+    <option value="ly">Lý</option>
+    <option value="hoa">Hóa</option>
+    <option value="trung">Tiếng Trung</option>
+  </select>
+
+  <!-- ======= CHỌN LỚP / HSK (ĐỔI THEO MÔN) ======= -->
+  <label>Lớp / HSK</label>
+  <select name="class_name" id="classSelect" required></select>
+
+  <!-- ======= PASTE CÂU HỎI ======= -->
+  <!-- FORMAT: quiz_name<TAB>question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct -->
+  <textarea
+    name="bulk_text"
+    rows="10"
+    placeholder="quiz_name<TAB>question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct"
+    required></textarea>
+
+  <button class="btn btn-primary">🚀 Upload</button>
+</form>
+
+</div>
+
+ <!-- ===== FILTER ĐỀ THEO MÔN & LỚP (LV1) ===== -->
+<div style="display:flex; gap:12px; margin-bottom:12px; align-items:center">
+
+  <label><b>Môn:</b></label>
+  <select id="filterSubject">
+    <option value="all">-- Tất cả --</option>
+    <option value="toan">Toán</option>
+    <option value="ly">Lý</option>
+    <option value="hoa">Hóa</option>
+    <option value="trung">Tiếng Trung</option>
+  </select>
+
+  <label><b>Lớp / HSK:</b></label>
+  <select id="filterClass">
+    <option value="all">-- Tất cả --</option>
+  </select>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 1: DANH SÁCH TẤT CẢ ĐỀ TRONG HỆ THỐNG ====== -->
+<!-- ======= Xem / Chọn / Xoá đề ============================= -->
+<!-- ========================================================= -->
+
+<div class="admin-card">
+
+<h3>📚 Danh sách đề</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Môn</th>
+      <th>Lớp</th>
+      <th>Tên đề</th>
+      <th>Quiz ID</th>
+      <th>⏱ Thời gian (phút)</th>
+      <th>Hành động</th>
+    </tr>
+  </thead>
+
+  <tbody>
+  {% for q in quizzes %}
+    <tr>
+      <td>{{ q.subject }}</td>
+      <td>{{ q.class }}</td>
+      <td>{{ q.quiz_name }}</td>
+      <td>{{ q.quiz_id }}</td>
+
+      <!-- ===== CỘT SỬA THỜI GIAN ===== -->
+      <td>
+        <form method="post" style="display:flex; gap:6px; align-items:center">
+          <input type="hidden" name="action" value="update_time">
+          <input type="hidden" name="quiz_id" value="{{ q.quiz_id }}">
+          <input type="number"
+                 name="time_limit"
+                 value="{{ q.time_limit or 15 }}"
+                 min="1"
+                 style="width:70px">
+          <button class="btn btn-primary">💾</button>
+        </form>
+      </td>
+
+      <!-- ===== CỘT HÀNH ĐỘNG ===== -->
+      <td>
+        <a href="/admin?subject={{ q.subject }}&quiz_id={{ q.quiz_id }}">👁 Xem</a>
+        |
+        <a href="/admin/delete-quiz/{{ q.subject }}/{{ q.quiz_id }}"
+           onclick="return confirm('Xoá đề và toàn bộ câu hỏi?')">
+           ❌ Xoá
+        </a>
+      </td>
+    </tr>
+  {% endfor %}
+
+  </tbody>
+</table>
+
+
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 2: UPLOAD ĐỀ + NHIỀU CÂU HỎI (PASTE) ======= -->
+<!-- ======= Mỗi dòng = 1 câu hỏi ============================ -->
+<!-- ========================================================= -->
+
+
+
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 3: THÔNG TIN ĐỀ ĐANG ĐƯỢC CHỌN ============ -->
+<!-- ======= Hiện khi admin bấm 'Xem' ======================== -->
+<!-- ========================================================= -->
+
+{% if selected_quiz %}
+<div class="admin-card">
+
+<h3>🗂 Đề đang chọn</h3>
+
+<p><b>Quiz ID:</b> {{ selected_quiz }}</p>
+
+<form method="post">
+  <input type="hidden" name="action" value="delete_quiz">
+  <input type="hidden" name="subject" value="{{ selected_subject }}">
+  <input type="hidden" name="quiz_id" value="{{ selected_quiz }}">
+  <button class="btn btn-danger"
+          onclick="return confirm('Xoá đề và toàn bộ câu hỏi?')">
+    ❌ Xoá đề này
+  </button>
+</form>
+
+</div>
+{% endif %}
+
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 4: DANH SÁCH CÂU HỎI TRONG ĐỀ ============= -->
+<!-- ======= Xem nội dung + Xoá từng câu ==================== -->
+<!-- ========================================================= -->
+
+<div class="admin-card">
+
+<h3>📋 Câu hỏi trong đề</h3>
+
+{% if questions %}
+  {% for q in questions %}
+    <div class="question-item">
+      <b>{{ loop.index }}.</b> {{ q.question }}
+
+      <ul>
+        <li>A. {{ q.answer_A }}</li>
+        <li>B. {{ q.answer_B }}</li>
+        <li>C. {{ q.answer_C }}</li>
+        <li>D. {{ q.answer_D }}</li>
+        <li><b>✔ Đáp án đúng: {{ q.correct_answer }}</b></li>
+      </ul>
+
+      <!-- XOÁ 1 CÂU HỎI -->
+      <form method="post">
+        <input type="hidden" name="action" value="delete_question">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <input type="hidden" name="quiz_id" value="{{ selected_quiz }}">
+        <input type="hidden" name="question" value="{{ q.question }}">
+        <button class="btn btn-danger"
+                onclick="return confirm('Xoá câu hỏi này?')">
+          ❌ Xoá câu
+        </button>
+      </form>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>Chưa có câu hỏi.</p>
+{% endif %}
+
+</div>
+
+<script>
+  // ===== MAP MÔN → DANH SÁCH LỚP / HSK =====
+  const classMap = {
+    toan: ["lop 1","lop 2","lop 3","lop 4","lop 5","lop 6","lop 7","lop 8","lop 9"],
+    ly:   ["lop 6","lop 7","lop 8","lop 9"],
+    hoa:  ["lop 6","lop 7","lop 8","lop 9"],
+    trung:["hsk 1","hsk 2","hsk 3","hsk 4","hsk 5","hsk 6","hsk 7","hsk 8","hsk 9"]
+  };
+
+  const subjectSelect = document.getElementById("subjectSelect");
+  const classSelect = document.getElementById("classSelect");
+
+  // ===== RENDER LỚP THEO MÔN =====
+  function renderClasses(subject) {
+    classSelect.innerHTML = "";
+    if (!classMap[subject]) return;
+
+    classMap[subject].forEach(cls => {
+      const opt = document.createElement("option");
+      opt.value = cls;
+      opt.textContent = cls.toUpperCase();
+      classSelect.appendChild(opt);
+    });
+  }
+
+  // ===== KHI ĐỔI MÔN =====
+  subjectSelect.addEventListener("change", function () {
+    renderClasses(this.value);
+  });
+
+  // ===== RENDER NGAY KHI LOAD TRANG =====
+  if (subjectSelect.value) {
+    renderClasses(subjectSelect.value);
+  }
+</script>
+
+<!-- ========================================================= -->
+<!-- ======= MODULE 5: ĐĂNG XUẤT ============================= -->
+<!-- ========================================================= -->
+
+<a href="/logout">🚪 Đăng xuất</a>
+
+
+<!-- ============================================

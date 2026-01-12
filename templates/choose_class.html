@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <title>Chọn lớp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+<div class="card class-page">
+
+    <!-- CỤM CHÍNH: chọn lớp -->
+    <div class="class-main">
+        <h2 class="title">Chọn lớp</h2>
+
+        <!--
+            Lặp qua danh sách lớp được truyền từ Flask
+            Mỗi nút dẫn sang bước DANH SÁCH ĐỀ
+        -->
+        {% for c in classes %}
+            <a class="subject-btn"
+   href="/list-quiz/{{ subject }}/{{ c|replace(' ', '-')|lower }}">
+    {{ c }}
+</a>
+        {% endfor %}
+    </div>
+<!-- 🔽 CỤM DƯỚI: QUAY LẠI -->
+<div class="class-footer">
+    <a class="link" href="/choose-subject">⬅ Quay lại chọn môn</a>
+</div>
+</div>
+</div>
+
+</body>
+</html>

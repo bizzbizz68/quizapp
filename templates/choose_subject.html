@@ -5,25 +5,38 @@
     <title>Chọn môn</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 </head>
 <body>
 
 <div class="container">
-<div class="card">
 
-    <h2 class="title">Chọn môn học</h2>
+<div class="card subject-card">
 
-    <!-- CHỈ SỬA LINK -->
-    <a class="subject-btn" href="/list-quiz/toan">Toán</a>
-    <a class="subject-btn" href="/list-quiz/ly">Lý</a>
-    <a class="subject-btn" href="/list-quiz/hoa">Hóa</a>
-    <a class="subject-btn" href="/list-quiz/trung">Tiếng Trung</a>
+    <!-- 🔥 CỤM GIỮA: CHỌN MÔN -->
+    <div class="subject-main">
 
-    <a class="link" href="/result">Xem kết quả</a>
-    <a class="link" href="/logout">Đăng xuất</a>
+        <h2 class="title">Chọn môn học</h2>
+
+        <!--
+    Khi click môn → chuyển sang bước CHỌN LỚP
+    subject = toan / ly / hoa / trung
+-->
+<a class="subject-btn" href="/choose-class/toan">Toán</a>
+<a class="subject-btn" href="/choose-class/ly">Lý</a>
+<a class="subject-btn" href="/choose-class/hoa">Hóa</a>
+<a class="subject-btn" href="/choose-class/trung">Tiếng Trung</a>
+
+
+    </div>
+
+    <!-- 🔽 CỤM DƯỚI -->
+    <div class="subject-footer">
+        <a class="link" href="/result">Xem kết quả</a>
+        <a class="link" href="/logout">Đăng xuất</a>
+    </div>
 
 </div>
+
 </div>
 
 </body>

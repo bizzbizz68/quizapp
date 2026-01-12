@@ -1,71 +1,53 @@
-/* ===== RESET CƠ BẢN ===== */
+/* ======================================================
+   1. RESET + BASE (DÙNG CHUNG)
+====================================================== */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-/* ===== NỀN FULL MÀN ===== */
-body {
-    margin: 0;
-    padding: 0;
-    font-size: 16px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    min-height: 100vh;          /* luôn đủ chiều cao màn hình */
-    background: #436AEC;        /* nền xanh nhẹ kiểu app */
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+body {
+    min-height: 100vh;
+    background: #436AEC;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+}
 
-/* ===== CĂN GIỮA CARD ===== */
+/* ======================================================
+   2. LAYOUT CHUNG (KHÔNG ĐƯỢC PHÁ)
+====================================================== */
 .container {
     width: 100%;
     max-width: 420px;
-    margin: 0 auto;      /* 🔥 căn giữa chuẩn */
+    margin: 0 auto;
     padding: 12px;
-    box-sizing: border-box;
 }
 
-
-
-/* ===== CARD TRẮNG ===== */
 .card {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    min-height: 97vh;
     background: #fff;
-    padding: 16px;
     border-radius: 12px;
-    box-sizing: border-box;
-
-    /* thêm cho giống app */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* ===== TIÊU ĐỀ ===== */
+/* ======================================================
+   3. COMPONENT DÙNG CHUNG
+====================================================== */
+
+/* ----- TITLE ----- */
 .title {
     font-size: 24px;
-    margin-bottom: 20px;
     text-align: center;
+    margin-bottom: 16px;
 }
 
-/* ===== INPUT ===== */
+/* ----- INPUT ----- */
 .input-group {
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.input-group label {
-    font-size: 14px;
-    margin-bottom: 6px;
-    display: block;
+    margin-bottom: 14px;
 }
 
 .input-wrapper {
@@ -80,96 +62,244 @@ input {
     font-size: 16px;
 }
 
-/* ===== ICON MẮT ===== */
+/* ----- TOGGLE EYE ----- */
 .toggle {
     position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    font-size: 16px;
 }
 
-/* ===== BUTTON ===== */
-.btn {
+/* ----- BUTTON (BTN + SUBJECT BTN) ----- */
+.btn,
+.subject-btn {
     display: block;
     width: 100%;
     padding: 14px;
     border-radius: 10px;
     border: none;
     background: #5fc462;
-    color: white;
-    font-size: 20px;
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
-    margin: 0 auto 10px;
+    margin-bottom: 10px;
 
     box-shadow:
         0 4px 0 #24792B,
         0 8px 14px rgba(0,0,0,0.25);
 
-    transition: all 0.15s ease;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-/* hover cho mượt */
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+.btn:active,
+.subject-btn:active {
+    transform: translateY(3px);
+    box-shadow:
+        0 2px 0 #24792B,
+        0 4px 6px rgba(0,0,0,0.2);
 }
 
-/* ===== LINK ===== */
+/* ----- LINK ----- */
 .link {
-    display: block;              /* để áp dụng căn giữa */
-    margin: 12px auto 0;          /* trên 12px – trái/phải auto → giữa */
-    color: #4a90ff;               /* màu xanh link */
-    text-decoration: none;        /* bỏ gạch chân */
-    text-align: center;           /* căn chữ ra giữa */
+    display: block;
+    text-align: center;
+    color: #4a90ff;
     text-decoration: none;
+    margin-top: 6px;
 }
 
-/* ===== FLASH MESSAGE ===== */
+/* ----- FLASH MESSAGE ----- */
 .flash {
+    text-align: center;
     margin-bottom: 10px;
     font-size: 14px;
-    text-align: center;
 }
-
 .flash.error { color: red; }
 .flash.success { color: green; }
 
-
-/* ===== BUTTON CHỌN MÔN ===== */
-.subject-btn {
-    display: block;                 /* biến button thành block để chiếm 1 hàng */
-    width: 100%;                    /* nút rộng hết chiều ngang thằng cha */
-    padding: 14px;                  /* khoảng trống bên trong, làm nút cao và dễ bấm */
-    border-radius: 10px;            /* bo tròn góc nút */
-    border: none;                   /* bỏ viền mặc định của button */
-
-    background: #5fc462;            /* màu nền xanh lá */
-    color: white;                   /* màu chữ trắng */
-    font-size: 20px;                /* cỡ chữ to, rõ */
-    text-align: center;
-    text-decoration: none;
-
-    cursor: pointer;                /* rê chuột hiện bàn tay */
-    margin: 0 auto 10px;            /* căn giữa ngang + cách dưới 10px */
-
-    /* ===== BUTTON CHỌN MÔN ===== */
-
-
-    /* ---- HIỆU ỨNG 3D ---- */
-    box-shadow:
-        0 4px 0 #24792B,             /* bóng cứng bên dưới → giả đế nút */
-        0 8px 14px rgba(0,0,0,0.25); /* bóng mờ → tạo chiều sâu */
-
-    transition: all 0.15s ease;     /* chuyển trạng thái mượt khi hover / bấm */
-}
-.card p.answer-correct {
-    color: green;
-    font-weight: bold;
+/* ======================================================
+   4. PAGE MODULE – LOGIN (GIỮA TOÀN BỘ)
+====================================================== */
+.login-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.card p.answer-wrong {
-    color: red;
+/* ======================================================
+   5. PAGE MODULE – SUBJECT (CHỌN MÔN)
+====================================================== */
+.subject-page {
+    display: block; /* chảy top-down tự nhiên */
 }
 
+.subject-footer {
+    margin-top: 6px;      /* sát cụm trên */
+    padding-bottom: 12px;
+}
+
+/* ======================================================
+   6. PAGE MODULE – CHOOSE QUIZ (CHỌN ĐỀ)
+====================================================== */
+.choose-quiz-page {
+    display: block;
+}
+
+.choose-quiz-footer {
+    margin-top: 6px;
+    padding-bottom: 12px;
+}
+/* ============admin page================ */
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.admin-actions a {
+  padding: 14px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+}
+
+#=============GIAO DIỆN TRANG ADMIN===========
+/* ================= ADMIN PANEL ================= */
+
+.admin-container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+/* ----- CARD ----- */
+.admin-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  overflow: visible;
+}
+
+
+.admin-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* ----- FORM ----- */
+.admin-card label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.admin-card input,
+.admin-card select,
+.admin-card textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.admin-card textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* ----- BUTTON ----- */
+.btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* ----- TABLE ----- */
+.admin-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.admin-card table th,
+.admin-card table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+.admin-card table th {
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+/* ----- QUESTION LIST ----- */
+.question-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  margin-bottom: 12px;
+}
+
+.question-item ul {
+  margin: 8px 0 0 16px;
+}
+
+/* ----- FLASH MESSAGE ----- */
+.flash.success {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.flash.error {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+/* ===== FIX SELECT DROPDOWN BỊ CHE ===== */
+.admin-card select {
+  position: relative;
+  z-index: 10;
+}

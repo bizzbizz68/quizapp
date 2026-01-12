@@ -45,7 +45,9 @@
         <button class="subject-btn" onclick="nextQuestion()">Câu tiếp ➡</button>
     </div>
 
-    <a class="link" href="/list-quiz/{{ subject }}">⬅ Quay lại danh sách đề</a>
+    <a class="link"
+   href="/list-quiz/{{ subject }}/{{ class_name|replace(' ', '-') }}">
+    ⬅ Quay lại danh sách đề</a>
 
 </div>
 </div>

@@ -9,8 +9,43 @@ from datetime import datetime
 import time
 import json
 import os
+import re
+from openpyxl import load_workbook
+
+def slugify(text):
+    text = text.lower()
+    text = re.sub(r"[àáạảãâầấậẩẫăằắặẳẵ]", "a", text)
+    text = re.sub(r"[èéẹẻẽêềếệểễ]", "e", text)
+    text = re.sub(r"[ìíịỉĩ]", "i", text)
+    text = re.sub(r"[òóọỏõôồốộổỗơờớợởỡ]", "o", text)
+    text = re.sub(r"[ùúụủũưừứựửữ]", "u", text)
+    text = re.sub(r"[ỳýỵỷỹ]", "y", text)
+    text = re.sub(r"đ", "d", text)
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    return text.strip("-")
+
+from functools import wraps
+#==========KIEM TRA QUYEN ADMIN=======
+from functools import wraps
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if session.get("role") != "admin":
+            return redirect(url_for("choose_subject"))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+
 app = Flask(__name__)
 app.secret_key = "quiz_secret_key"
+SUBJECT_SHEET_MAP = {
+    "list": "LIST",
+    "toan": "TOAN",
+    "ly": "LY",
+    "hoa": "HOA",
+    "trung": "CHINA",
+}
 
 # ================= GOOGLE SHEET =================
 SCOPES = [
@@ -19,11 +54,7 @@ SCOPES = [
 ]
 
 service_account_info = json.loads(
-    os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-)
-
-service_account_info = json.loads(
-    os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+    os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "{}")
 )
 
 creds = Credentials.from_service_account_info(
@@ -46,18 +77,10 @@ CACHE_EXPIRE = 300  # 5 phút
 def load_quiz_from_sheet():
     global QUIZ_CACHE, CACHE_TIME
 
-    print("🔄 Load quiz từ Google Sheet")
+    #print("Load quiz từ Google Sheet")
     QUIZ_CACHE = {}
 
-    sheets = {
-        "list": "LIST",
-        "toan": "TOAN",
-        "ly": "LY",
-        "hoa": "HOA",
-        "trung": "CHINA",
-    }
-
-    for key, sheet_name in sheets.items():
+    for key, sheet_name in SUBJECT_SHEET_MAP.items():
         ws = sh.worksheet(sheet_name)
         QUIZ_CACHE[key] = ws.get_all_records()
 
@@ -89,7 +112,12 @@ def login():
         for row in rows:
             if row[0] == username and row[1] == password:
                 session["user"] = username
-                return redirect(url_for("choose_subject"))
+                session["role"] = row[4].strip().lower() if len(row) > 4 else "user"
+
+                if session["role"] == "admin":
+                    return redirect(url_for("admin"))
+                else:
+                    return redirect(url_for("choose_subject"))
 
         flash("Sai tài khoản hoặc mật khẩu", "error")
 
@@ -121,7 +149,11 @@ def register():
                 return render_template("register.html")
 
         ws_user.append_row([
-            username, password, fullname, phone,
+            username,
+            password,
+            fullname,
+            phone,
+            "user",  # 👈 role mặc định
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ])
 
@@ -129,6 +161,200 @@ def register():
         return redirect(url_for("login"))
 
     return render_template("register.html")
+#===========PAGE CHO ADMIN====================
+# ================= PAGE ADMIN =================
+@app.route("/admin", methods=["GET", "POST"])
+@admin_required
+def admin():
+    # ======================================================
+    # ===== 1. LOAD DANH SÁCH ĐỀ (LUÔN LOAD – GET & POST) ===
+    # ======================================================
+    ws_list = sh.worksheet("LIST")
+    quizzes = ws_list.get_all_records()
+
+    # ======================================================
+    # ===== 2. LẤY ĐỀ ĐANG CHỌN (TỪ QUERY STRING – GET) =====
+    # ======================================================
+    selected_quiz = request.args.get("quiz_id")
+    selected_subject = request.args.get("subject")
+
+    questions = []
+
+    # ======================================================
+    # ===== 3. LOAD CÂU HỎI THEO ĐỀ ĐANG CHỌN ==============
+    # ======================================================
+    if selected_quiz and selected_subject:
+        sheet_name = SUBJECT_SHEET_MAP.get(selected_subject)
+        if sheet_name:
+            ws = sh.worksheet(sheet_name)
+            questions = [
+                q for q in ws.get_all_records()
+                if q.get("quiz_id") == selected_quiz
+            ]
+
+    # ======================================================
+    # ===== 4. XỬ LÝ FORM POST =============================
+    # ======================================================
+    if request.method == "POST":
+        action = request.form.get("action")
+
+        # ==========================================
+        # ===== 4.1 BULK UPLOAD (PASTE TEXT) =======
+        # ==========================================
+        if action == "bulk_upload":
+            subject = request.form["subject"].strip().lower()
+            class_name = request.form["class_name"].strip().lower()
+            raw_text = request.form["bulk_text"]
+
+            lines = [l for l in raw_text.splitlines() if l.strip()]
+            if not lines:
+                flash("❌ Không có dữ liệu", "error")
+                return redirect("/admin")
+
+            parsed = []
+            for i, line in enumerate(lines, start=1):
+                cols = line.split("\t")
+                if len(cols) != 7:
+                    flash(f"❌ Dòng {i} sai định dạng", "error")
+                    return redirect("/admin")
+                parsed.append(cols)
+
+            quiz_name = parsed[0][0].strip()
+            quiz_id = f"{subject}-{class_name}-{slugify(quiz_name)}"
+
+            # thêm vào LIST nếu chưa có
+            if not any(q["quiz_id"] == quiz_id for q in quizzes):
+                ws_list.append_row([subject, class_name, quiz_id, quiz_name])
+
+            ws_subject = sh.worksheet(SUBJECT_SHEET_MAP[subject])
+
+            for row in parsed:
+                qname, question, a, b, c, d, correct = row
+                ws_subject.append_row([
+                    quiz_id,
+                    qname.strip(),
+                    question.strip(),
+                    a.strip(),
+                    b.strip(),
+                    c.strip(),
+                    d.strip(),
+                    correct.strip().upper()
+                ])
+
+            QUIZ_CACHE.clear()
+            flash(f"✅ Đã upload {len(parsed)} câu hỏi", "success")
+            return redirect(f"/admin?subject={subject}&quiz_id={quiz_id}")
+
+        # ==========================================
+        # ===== 4.2 UPLOAD FILE EXCEL ==============
+        # ==========================================
+        elif action == "upload_excel":
+            subject = request.form["subject"].strip().lower()
+            class_name = request.form["class_name"].strip().lower()
+            file = request.files.get("excel_file")
+
+            if not file:
+                flash("❌ Không có file Excel", "error")
+                return redirect("/admin")
+
+            wb = load_workbook(file)
+            ws_excel = wb.active
+            rows = list(ws_excel.iter_rows(min_row=2, values_only=True))
+
+            if not rows:
+                flash("❌ File Excel rỗng", "error")
+                return redirect("/admin")
+
+            quiz_name = str(rows[0][0]).strip()
+            quiz_id = f"{subject}-{class_name}-{slugify(quiz_name)}"
+
+            if not any(q["quiz_id"] == quiz_id for q in quizzes):
+                ws_list.append_row([subject, class_name, quiz_id, quiz_name])
+
+            ws_subject = sh.worksheet(SUBJECT_SHEET_MAP[subject])
+
+            for r in rows:
+                qname, question, a, b, c, d, correct = r
+                ws_subject.append_row([
+                    quiz_id,
+                    str(qname).strip(),
+                    str(question).strip(),
+                    str(a).strip(),
+                    str(b).strip(),
+                    str(c).strip(),
+                    str(d).strip(),
+                    str(correct).strip().upper()
+                ])
+
+            QUIZ_CACHE.clear()
+            flash(f"✅ Đã upload {len(rows)} câu hỏi từ Excel", "success")
+            return redirect(f"/admin?subject={subject}&quiz_id={quiz_id}")
+
+        # ==========================================
+        # ===== 4.3 CẬP NHẬT THỜI GIAN LÀM BÀI ======
+        # ==========================================
+        elif action == "update_time":
+            quiz_id = request.form["quiz_id"]
+            time_limit = int(request.form["time_limit"])
+
+            rows = ws_list.get_all_values()
+
+            for i in range(1, len(rows)):
+                if rows[i][2] == quiz_id:
+                    # cột 5 = time_limit
+                    if len(rows[i]) < 5:
+                        rows[i].append(str(time_limit))
+                    else:
+                        rows[i][4] = str(time_limit)
+                    break
+
+            ws_list.update("A1", rows)
+            flash("⏱ Đã cập nhật thời gian làm bài", "success")
+            return redirect("/admin")
+
+    # ======================================================
+    # ===== 5. RENDER GIAO DIỆN ADMIN ======================
+    # ======================================================
+    return render_template(
+        "admin.html",
+        quizzes=quizzes,
+        questions=questions,
+        selected_quiz=selected_quiz,
+        selected_subject=selected_subject
+    )
+
+
+
+
+@app.route("/admin/delete-quiz/<subject>/<quiz_id>")
+@admin_required
+def delete_quiz(subject, quiz_id):
+    # xoá trong LIST
+    ws_list = sh.worksheet("LIST")
+    rows = ws_list.get_all_values()
+
+    for i in range(1, len(rows)):
+        if rows[i][2] == quiz_id:
+            ws_list.delete_rows(i + 1)
+            break
+
+    # xoá trong sheet môn
+    sheet_name = SUBJECT_SHEET_MAP.get(subject)
+    if sheet_name:
+        ws = sh.worksheet(sheet_name)
+        all_rows = ws.get_all_values()
+
+        new_rows = [all_rows[0]] + [
+            r for r in all_rows[1:] if r[0] != quiz_id
+        ]
+
+        ws.clear()
+        ws.update("A1", new_rows)
+
+    QUIZ_CACHE.clear()
+    flash("🗑️ Đã xoá đề và toàn bộ câu hỏi", "success")
+    return redirect("/admin")
+
 
 
 # ================= CHỌN MÔN =================
@@ -138,25 +364,73 @@ def choose_subject():
         return redirect(url_for("login"))
     return render_template("choose_subject.html")
 
+# ================= CHỌN LỚP =================
+@app.route("/choose-class/<subject>")
+def choose_class(subject):
+    """
+    Trang chọn lớp / HSK
+    subject: môn học được truyền từ bước trước
+    """
 
-# ================= CHỌN ĐỀ =================
-@app.route("/list-quiz/<subject>")
-def list_quiz(subject):
+    # Nếu chưa đăng nhập → quay về login
     if "user" not in session:
         return redirect(url_for("login"))
 
+    # Chuẩn hoá tên môn (viết thường)
     subject = subject.lower()
 
+    # Nếu là tiếng Trung → dùng HSK 1–9
+    if subject == "trung":
+        classes = [f"HSK {i}" for i in range(1, 10)]
+    else:
+        # Các môn khác → Lớp 1–9
+        classes = [f"Lớp {i}" for i in range(1, 10)]
+
+    # Render giao diện chọn lớp
+    return render_template(
+        "choose_class.html",
+        subject=subject,   # truyền môn sang HTML
+        classes=classes    # danh sách nút lớp
+    )
+
+# ================= CHỌN ĐỀ =================
+@app.route("/list-quiz/<subject>/<class_name>")
+def list_quiz(subject, class_name):
+    """
+    Trang danh sách đề
+    subject     : môn học (toan / ly / hoa / trung)
+    class_name  : lớp hoặc HSK (dạng URL: hsk-1, lop-3)
+    """
+
+    # 1️⃣ Chưa đăng nhập → quay về login
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    # 2️⃣ Chuẩn hoá môn học để so sánh
+    subject = subject.strip().lower()
+
+    # 3️⃣ Chuẩn hoá lớp:
+    #     - URL dùng dấu '-' để tránh lỗi khoảng trắng
+    #     - đổi ngược lại để so sánh với Google Sheet
+    #     ví dụ: hsk-1  → hsk 1
+    #             lop-3 → lop 3
+    class_name = class_name.replace("-", " ").strip().lower()
+
+    # 4️⃣ Lọc danh sách đề theo *MÔN + LỚP*
     quiz_list = [
         q for q in get_quiz("list")
         if q["subject"].strip().lower() == subject
+        and q["class"].strip().lower() == class_name
     ]
 
+    # 5️⃣ Render giao diện danh sách đề
     return render_template(
         "list_quiz.html",
-        subject=subject,
-        quiz_list=quiz_list
+        subject=subject,          # truyền môn sang HTML
+        class_name=class_name,    # truyền lớp sang HTML
+        quiz_list=quiz_list       # danh sách đề đã lọc
     )
+
 
 
 # ================= TRANG LÀM BÀI =================
@@ -194,8 +468,7 @@ def api_quiz(subject, quiz_id):
 
     questions = [
         q for q in get_quiz(subject)
-        if str(q.get("quiz_id")).strip().upper() == str(quiz_id).strip().upper()
-           == quiz_id.upper()
+        if str(q.get("quiz_id", "")).strip().upper() == quiz_id.upper()
     ]
 
     return jsonify(questions)
