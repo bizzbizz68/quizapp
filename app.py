@@ -24,6 +24,22 @@ def slugify(text):
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-")
 
+#=========tạo quizid tự động========
+def make_quiz_id(subject, class_name, quiz_name):
+    # subject: hoa -> h
+    s = subject[0].lower()
+
+    # class: lop 8 / hsk 1 -> 8 / 1
+    nums = re.findall(r"\d+", class_name)
+    c = nums[0] if nums else "0"
+
+    # quiz_name: Hóa học Cơ bản -> hhcb
+    words = re.findall(r"[A-Za-zÀ-ỹ]+", quiz_name)
+    n = "".join(w[0].lower() for w in words)
+
+    return f"{s}{c}-{n}"
+
+
 from functools import wraps
 #==========KIEM TRA QUYEN ADMIN=======
 from functools import wraps
@@ -214,25 +230,33 @@ def admin():
             parsed = []
             for i, line in enumerate(lines, start=1):
                 cols = line.split("\t")
-                if len(cols) != 7:
-                    flash(f"❌ Dòng {i} sai định dạng", "error")
+                if len(cols) != 6:
+                    flash(f"❌ Dòng {i} sai định dạng (cần 6 cột)", "error")
                     return redirect("/admin")
+
                 parsed.append(cols)
 
-            quiz_name = parsed[0][0].strip()
-            quiz_id = f"{subject}-{class_name}-{slugify(quiz_name)}"
+            quiz_name = request.form["quiz_name"].strip()
+            quiz_id = make_quiz_id(subject, class_name, quiz_name)
 
             # thêm vào LIST nếu chưa có
             if not any(q["quiz_id"] == quiz_id for q in quizzes):
                 ws_list.append_row([subject, class_name, quiz_id, quiz_name])
 
-            ws_subject = sh.worksheet(SUBJECT_SHEET_MAP[subject])
+            ws_list.append_row([
+                subject,
+                class_name,
+                quiz_id,
+                quiz_name,
+                request.form.get("time_limit", 15)
+            ])
 
             for row in parsed:
-                qname, question, a, b, c, d, correct = row
+                question, a, b, c, d, correct = row
+
                 ws_subject.append_row([
                     quiz_id,
-                    qname.strip(),
+                    quiz_name,
                     question.strip(),
                     a.strip(),
                     b.strip(),
@@ -265,11 +289,17 @@ def admin():
                 flash("❌ File Excel rỗng", "error")
                 return redirect("/admin")
 
-            quiz_name = str(rows[0][0]).strip()
-            quiz_id = f"{subject}-{class_name}-{slugify(quiz_name)}"
+            quiz_name = request.form["quiz_name"].strip()
+            quiz_id = make_quiz_id(subject, class_name, quiz_name)
 
             if not any(q["quiz_id"] == quiz_id for q in quizzes):
-                ws_list.append_row([subject, class_name, quiz_id, quiz_name])
+                ws_list.append_row([
+                    subject,
+                    class_name,
+                    quiz_id,
+                    quiz_name,
+                    request.form.get("time_limit", 15)
+                ])
 
             ws_subject = sh.worksheet(SUBJECT_SHEET_MAP[subject])
 
@@ -367,30 +397,33 @@ def choose_subject():
 # ================= CHỌN LỚP =================
 @app.route("/choose-class/<subject>")
 def choose_class(subject):
-    """
-    Trang chọn lớp / HSK
-    subject: môn học được truyền từ bước trước
-    """
-
-    # Nếu chưa đăng nhập → quay về login
     if "user" not in session:
         return redirect(url_for("login"))
 
-    # Chuẩn hoá tên môn (viết thường)
     subject = subject.lower()
 
-    # Nếu là tiếng Trung → dùng HSK 1–9
     if subject == "trung":
-        classes = [f"HSK {i}" for i in range(1, 10)]
-    else:
-        # Các môn khác → Lớp 1–9
-        classes = [f"Lớp {i}" for i in range(1, 10)]
+        classes = [
+            {"label": f"HSK {i}", "value": f"hsk-{i}"}
+            for i in range(1, 7)
+        ]
 
-    # Render giao diện chọn lớp
+    elif subject in ["ly", "hoa"]:
+        classes = [
+            {"label": f"Lớp {i}", "value": f"lop-{i}"}
+            for i in range(6, 10)
+        ]
+
+    else:  # toán
+        classes = [
+            {"label": f"Lớp {i}", "value": f"lop-{i}"}
+            for i in range(1, 10)
+        ]
+
     return render_template(
         "choose_class.html",
-        subject=subject,   # truyền môn sang HTML
-        classes=classes    # danh sách nút lớp
+        subject=subject,
+        classes=classes
     )
 
 # ================= CHỌN ĐỀ =================
@@ -415,7 +448,7 @@ def list_quiz(subject, class_name):
     #     ví dụ: hsk-1  → hsk 1
     #             lop-3 → lop 3
     class_name = class_name.replace("-", " ").strip().lower()
-
+    
     # 4️⃣ Lọc danh sách đề theo *MÔN + LỚP*
     quiz_list = [
         q for q in get_quiz("list")
@@ -440,17 +473,23 @@ def quiz(subject, quiz_id):
         return redirect(url_for("login"))
 
     quiz_name = ""
+    class_name = ""
+
     for q in get_quiz("list"):
         if q["quiz_id"] == quiz_id:
             quiz_name = q["quiz_name"]
+            class_name = q["class"]
             break
 
     return render_template(
         "quiz.html",
         subject=subject,
         quiz_id=quiz_id,
-        quiz_name=quiz_name
+        quiz_name=quiz_name,
+        class_name=class_name
     )
+
+
 
 
 # ================= API LẤY CÂU HỎI =================
@@ -468,9 +507,7 @@ def api_quiz(subject, quiz_id):
 
     questions = [
         q for q in get_quiz(subject)
-        if str(q.get("quiz_id", "")).strip().upper() == quiz_id.upper()
-    ]
-
+        if str(q.get("quiz_id", "")).strip().upper() == quiz_id.upper()]
     return jsonify(questions)
 
 

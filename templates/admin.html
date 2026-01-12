@@ -20,9 +20,10 @@
   <div class="flash {{ c }}">{{ m }}</div>
 {% endfor %}
 
+
 <div class="admin-card">
 
-<h3>📥 Upload đề + nhiều câu hỏi (Paste)</h3>
+<h3>📥 Upload đề </h3>
 
 <form method="post">
   <!-- XÁC ĐỊNH ACTION CHO BACKEND -->
@@ -42,12 +43,18 @@
   <label>Lớp / HSK</label>
   <select name="class_name" id="classSelect" required></select>
 
+  <label>⏱ Thời gian làm bài (phút)</label>
+<input type="number" name="time_limit" value="15" min="1" required>
+
+  <label>📘 Tên đề </label>
+<input type="text" name="quiz_name" required placeholder="VD: Hóa học – Cơ bản">
+
   <!-- ======= PASTE CÂU HỎI ======= -->
-  <!-- FORMAT: quiz_name<TAB>question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct -->
-  <textarea
+<!-- FORMAT: question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct -->
+<textarea
     name="bulk_text"
     rows="10"
-    placeholder="quiz_name<TAB>question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct"
+    placeholder="question<TAB>A<TAB>B<TAB>C<TAB>D<TAB>correct"
     required></textarea>
 
   <button class="btn btn-primary">🚀 Upload</button>
@@ -84,13 +91,12 @@
 
 <h3>📚 Danh sách đề</h3>
 
-<table>
+<table id="quizTable">
   <thead>
     <tr>
       <th>Môn</th>
       <th>Lớp</th>
       <th>Tên đề</th>
-      <th>Quiz ID</th>
       <th>⏱ Thời gian (phút)</th>
       <th>Hành động</th>
     </tr>
@@ -100,9 +106,9 @@
   {% for q in quizzes %}
     <tr>
       <td>{{ q.subject }}</td>
-      <td>{{ q.class }}</td>
-      <td>{{ q.quiz_name }}</td>
-      <td>{{ q.quiz_id }}</td>
+<td>{{ q.class }}</td>
+<td>{{ q.quiz_name }}</td>
+
 
       <!-- ===== CỘT SỬA THỜI GIAN ===== -->
       <td>
@@ -245,6 +251,58 @@
     renderClasses(subjectSelect.value);
   }
 </script>
+
+  <script>
+const filterSubject = document.getElementById("filterSubject");
+const filterClass = document.getElementById("filterClass");
+
+function renderFilterClasses(subject) {
+  filterClass.innerHTML = '<option value="all">-- Tất cả --</option>';
+  if (!classMap[subject]) return;
+
+  classMap[subject].forEach(cls => {
+    const opt = document.createElement("option");
+    opt.value = cls;
+    opt.textContent = cls.toUpperCase();
+    filterClass.appendChild(opt);
+  });
+}
+
+filterSubject.addEventListener("change", function () {
+  renderFilterClasses(this.value);
+});
+</script>
+  <script>
+/* ===== LỌC DANH SÁCH ĐỀ ===== */
+
+function applyQuizFilter() {
+  const subject = filterSubject.value; // toan / ly / hoa / trung
+  const cls = filterClass.value;       // lop 7 / hsk 1 / all
+
+  const rows = document.querySelectorAll("#quizTable tbody tr");
+
+  rows.forEach(row => {
+    const rowSubject = row.children[0].innerText.trim().toLowerCase();
+    const rowClass = row.children[1].innerText
+      .trim()
+      .toLowerCase()
+      .replace("lớp", "lop")
+      .replace(" ", "");
+
+    let show = true;
+
+    if (subject !== "all" && rowSubject !== subject) show = false;
+    if (cls !== "all" && rowClass !== cls.replace(" ", "")) show = false;
+
+    row.style.display = show ? "" : "none";
+  });
+}
+
+filterSubject.addEventListener("change", applyQuizFilter);
+filterClass.addEventListener("change", applyQuizFilter);
+</script>
+
+
 
 <!-- ========================================================= -->
 <!-- ======= MODULE 5: ĐĂNG XUẤT ============================= -->

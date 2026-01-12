@@ -19,12 +19,13 @@
             Lặp qua danh sách lớp được truyền từ Flask
             Mỗi nút dẫn sang bước DANH SÁCH ĐỀ
         -->
-        {% for c in classes %}
-            <a class="subject-btn"
-   href="/list-quiz/{{ subject }}/{{ c|replace(' ', '-')|lower }}">
-    {{ c }}
+        {% for cls in classes %}
+<a class="subject-btn"
+   href="/list-quiz/{{ subject }}/{{ cls.value }}">
+   {{ cls.label }}
 </a>
-        {% endfor %}
+{% endfor %}
+
     </div>
 <!-- 🔽 CỤM DƯỚI: QUAY LẠI -->
 <div class="class-footer">
